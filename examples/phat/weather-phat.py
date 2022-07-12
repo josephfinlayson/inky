@@ -58,8 +58,8 @@ inky_display.set_border(inky_display.BLACK)
 
 # Details to customise your weather display
 
-CITY = "Sheffield"
-COUNTRYCODE = "GB"
+CITY = "Berlin"
+COUNTRYCODE = "DE"
 WARNING_TEMP = 25.0
 
 
@@ -146,7 +146,7 @@ else:
     print("Warning, no weather information found!")
 
 # Create a new canvas to draw on
-img = Image.open(os.path.join(PATH, "resources/backdrop.png")).resize(inky_display.resolution)
+img = Image.new( "RGBA", inky_display.resolution, 'white').resize(inky_display.resolution)
 draw = ImageDraw.Draw(img)
 
 # Load our icon files and generate masks
