@@ -56,6 +56,9 @@ if inky_display.resolution not in ((212, 104), (250, 122)):
 
 inky_display.set_border(inky_display.BLACK)
 
+
+INKY_HEIGHT = inky_display.resolution[1]
+INKY_WIDTH = inky_display.resolution[0]
 # Details to customise your weather display
 
 CITY = "Berlin"
@@ -145,6 +148,8 @@ if weather:
 else:
     print("Warning, no weather information found!")
 
+
+print(inky_display.resolution)
 # Create a new canvas to draw on
 img = Image.new( "RGBA", inky_display.resolution, 'white').resize(inky_display.resolution)
 draw = ImageDraw.Draw(img)
@@ -160,15 +165,16 @@ for icon in glob.glob(os.path.join(PATH, "resources/icon-*.png")):
 font = ImageFont.truetype(FredokaOne, 22)
 
 # Draw lines to frame the weather data
-draw.line((69, 36, 69, 81))       # Vertical line
-draw.line((31, 35, 184, 35))      # Horizontal top line
-draw.line((69, 58, 174, 58))      # Horizontal middle line
-draw.line((169, 58, 169, 58), 2)  # Red seaweed pixel :D
+draw.line((INKY_WIDTH/3, 0, INKY_WIDTH/3, INKY_HEIGHT), 1)       # Vertical line
+draw.line((INKY_WIDTH-INKY_WIDTH, INKY_HEIGHT/2, INKY_WIDTH, INKY_HEIGHT/2), 1)      # Horizontal top line
+draw.line((INKY_WIDTH/3*2, 0, INKY_WIDTH/3*2, INKY_HEIGHT), 1)       # Vertical line
 
 # Write text with weather values to the canvas
 datetime = time.strftime("%d/%m %H:%M")
 
-draw.text((36, 12), datetime, inky_display.WHITE, font=font)
+draw.text((36, 12), f"Tuesday {datetime}", inky_display.WHITE, font=font)
+
+draw.text((36, 45), f"{datetime}", inky_display.WHITE, font=font)
 
 draw.text((72, 34), "T", inky_display.WHITE, font=font)
 draw.text((92, 34), u"{}°".format(temperature), inky_display.WHITE if temperature < WARNING_TEMP else inky_display.RED, font=font)
