@@ -234,7 +234,16 @@ draw.text( grids[2].center(), u"{}°C".format(temperature), inky_display.WHITE i
 # # Draw the current weather icon over the backdrop
 if weather_icon is not None:
     print(icons[weather_icon], masks[weather_icon])
-    img.paste(icons[weather_icon], grids[3].center(), masks[weather_icon])
+    icon_image = icons[weather_icon].resize((100,100 ))
+    img_w, img_h = icon_image.size
+    # fix this silly logic
+    bg_w = grids[3].width() * 3
+    bg_h = grids[3].height() * 3
+
+    offset = ((bg_w - img_w) // 2, (bg_h - img_h) // 2)
+
+    img.paste(icon_image, offset)
+
 else:
     draw.text((28, 36), "?", inky_display.RED, font=font)
 
