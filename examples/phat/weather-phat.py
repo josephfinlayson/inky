@@ -51,9 +51,6 @@ try:
 except TypeError:
     raise TypeError("You need to update the Inky library to >= v1.1.0")
 
-if inky_display.resolution not in ((212, 104), (250, 122)):
-    w, h = inky_display.resolution
-
 inky_display.set_border(inky_display.BLACK)
 
 
@@ -170,11 +167,13 @@ draw.line((INKY_WIDTH-INKY_WIDTH, INKY_HEIGHT/2, INKY_WIDTH, INKY_HEIGHT/2), 1) 
 draw.line((INKY_WIDTH/3*2, 0, INKY_WIDTH/3*2, INKY_HEIGHT), 1)       # Vertical line
 
 # Write text with weather values to the canvas
-datetime = time.strftime("%d/%m %H:%M")
+today_date = time.strftime("%d/%m")
+now = time.strftime("%H:%M")
 
-draw.text((36, 12), f"Tuesday {datetime}", inky_display.WHITE, font=font)
 
-draw.text((36, 45), f"{datetime}", inky_display.WHITE, font=font)
+draw.text((36, 12), f"Thursday {today_date}", inky_display.WHITE, font=font)
+
+draw.text((36, 45), f"{now}", inky_display.WHITE, font=font)
 
 draw.text((72, 34), "T", inky_display.WHITE, font=font)
 draw.text((92, 34), u"{}°".format(temperature), inky_display.WHITE if temperature < WARNING_TEMP else inky_display.RED, font=font)
