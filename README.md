@@ -115,3 +115,17 @@ display.show()
 # Migrating
 
 If you're migrating code from the old `inkyphat` library you'll find that much of the drawing and image manipulation functions have been removed from Inky. These functions were always supplied by PIL, and the recommended approach is to use PIL to create and prepare your image before setting it to Inky with `set_image()`.
+
+
+
+# Weather Phat:
+
+"""
+To run this example on Python 2.x you should:
+    sudo apt install python-lxml
+    sudo pip install geocoder requests font-fredoka-one beautifulsoup4=4.6.3
+
+On Python 3.x:
+    sudo apt install python3-lxml
+    sudo pip3 install geocoder requests font-fredoka-one beautifulsoup4
+"""

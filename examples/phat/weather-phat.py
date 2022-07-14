@@ -1,46 +1,19 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-
+from resource import prlimit
+import geocoder
+import random
+from bs4 import BeautifulSoup
 import glob
 import os
 import time
 from sys import exit
+import requests
 
 from font_fredoka_one import FredokaOne
 from inky.auto import auto
 from PIL import Image, ImageDraw, ImageFont
 
-"""
-To run this example on Python 2.x you should:
-    sudo apt install python-lxml
-    sudo pip install geocoder requests font-fredoka-one beautifulsoup4=4.6.3
-
-On Python 3.x:
-    sudo apt install python3-lxml
-    sudo pip3 install geocoder requests font-fredoka-one beautifulsoup4
-"""
-
-try:
-    import requests
-except ImportError:
-    exit("This script requires the requests module\nInstall with: sudo pip install requests")
-
-try:
-    import geocoder
-except ImportError:
-    exit("This script requires the geocoder module\nInstall with: sudo pip install geocoder")
-
-try:
-    from bs4 import BeautifulSoup
-except ImportError:
-    exit("This script requires the bs4 module\nInstall with: sudo pip install beautifulsoup4==4.6.3")
-
-
-print("""Inky pHAT: Weather
-
-Displays weather information for a given location. The default location is Sheffield-on-Sea.
-
-""")
 
 # Get the current path
 PATH = os.path.dirname(__file__)
@@ -74,12 +47,14 @@ def get_coords(address):
 def get_weather(address):
     coords = get_coords(address)
     weather = {}
-    res = requests.get("https://darksky.net/forecast/{}/uk212/en".format(",".join([str(c) for c in coords])))
+    res = requests.get(
+        "https://darksky.net/forecast/{}/uk212/en".format(",".join([str(c) for c in coords])))
     if res.status_code == 200:
         soup = BeautifulSoup(res.content, "lxml")
         curr = soup.find_all("span", "currently")
         weather["summary"] = curr[0].img["alt"].split()[0]
-        weather["temperature"] = int(curr[0].find("span", "summary").text.split()[0][:-1])
+        weather["temperature"] = int(curr[0].find(
+            "span", "summary").text.split()[0][:-1])
         press = soup.find_all("div", "pressure")
         weather["pressure"] = int(press[0].find("span", "num").text)
         return weather
@@ -87,7 +62,14 @@ def get_weather(address):
         return weather
 
 
-def create_mask(source, mask=(inky_display.WHITE, inky_display.BLACK, inky_display.RED)):
+def create_mask(source, mask=(inky_display.WHITE,
+                              inky_display.BLACK,
+                              inky_display.RED,
+                              inky_display.BLUE,
+                              inky_display.YELLOW,
+                              inky_display.GREEN,
+                              inky_display.ORANGE,
+                              )):
     """Create a transparency mask.
 
     Takes a paletized source image and converts it into a mask
@@ -113,7 +95,8 @@ icons = {}
 masks = {}
 
 # Get the weather data for the given location
-location_string = "{city}, {countrycode}".format(city=CITY, countrycode=COUNTRYCODE)
+location_string = "{city}, {countrycode}".format(
+    city=CITY, countrycode=COUNTRYCODE)
 weather = get_weather(location_string)
 
 # This maps the weather summary from Dark Sky
@@ -148,23 +131,39 @@ else:
 
 print(inky_display.resolution)
 # Create a new canvas to draw on
-img = Image.new( "RGBA", inky_display.resolution, 'white').resize(inky_display.resolution)
+img = Image.new("RGB", inky_display.resolution,
+                'white').resize(inky_display.resolution)
 draw = ImageDraw.Draw(img)
 
 # Load our icon files and generate masks
 for icon in glob.glob(os.path.join(PATH, "resources/icon-*.png")):
     icon_name = icon.split("icon-")[1].replace(".png", "")
-    icon_image = Image.open(icon)
+    icon_image = Image.open(icon).resize((40,40))
     icons[icon_name] = icon_image
     masks[icon_name] = create_mask(icon_image)
+
+
+def get_kandinsky():
+    # pick random image in file
+    kandinskys = glob.glob(os.path.join(PATH, "resources/kandinsky/*.png"))
+    # get random from array
+    kandinsky = random.choice(kandinskys)
+    image = Image.open(kandinsky, ).resize((240, 240))
+    print(image)
+    return {"mask": create_mask(image),
+     "image": image}
+
 
 # Load the FredokaOne font
 font = ImageFont.truetype(FredokaOne, 22)
 
 # Draw lines to frame the weather data
-draw.line((INKY_WIDTH/3, 0, INKY_WIDTH/3, INKY_HEIGHT), 1)       # Vertical line
-draw.line((INKY_WIDTH-INKY_WIDTH, INKY_HEIGHT/2, INKY_WIDTH, INKY_HEIGHT/2), 1)      # Horizontal top line
-draw.line((INKY_WIDTH/3*2, 0, INKY_WIDTH/3*2, INKY_HEIGHT), 1)       # Vertical line
+draw.line((INKY_WIDTH/3, 0, INKY_WIDTH/3, INKY_HEIGHT),
+          1)       # Vertical line
+draw.line((INKY_WIDTH-INKY_WIDTH, INKY_HEIGHT/2, INKY_WIDTH,
+          INKY_HEIGHT/2), 1)      # Horizontal top line
+draw.line((INKY_WIDTH/3*2, 0, INKY_WIDTH/3*2,
+          INKY_HEIGHT), 1)       # Vertical line
 
 # Write text with weather values to the canvas
 today_date = time.strftime("%d/%m")
@@ -176,18 +175,24 @@ draw.text((36, 12), f"Thursday {today_date}", inky_display.WHITE, font=font)
 draw.text((36, 45), f"{now}", inky_display.WHITE, font=font)
 
 draw.text((72, 34), "T", inky_display.WHITE, font=font)
-draw.text((92, 34), u"{}°".format(temperature), inky_display.WHITE if temperature < WARNING_TEMP else inky_display.RED, font=font)
-
-draw.text((72, 58), "P", inky_display.WHITE, font=font)
-draw.text((92, 58), "{}".format(pressure), inky_display.WHITE, font=font)
+draw.text((92, 34), u"{}°".format(temperature), inky_display.WHITE if temperature <
+          WARNING_TEMP else inky_display.RED, font=font)
 
 # Draw the current weather icon over the backdrop
 if weather_icon is not None:
+    print(icons[weather_icon], masks[weather_icon])
     img.paste(icons[weather_icon], (28, 36), masks[weather_icon])
-
 else:
     draw.text((28, 36), "?", inky_display.RED, font=font)
 
+
+kandinsky = get_kandinsky()
+print(kandinsky["image"])
+print(img)
+# kandinsky["image"].save("kandinsky.png")
+img.paste(kandinsky["image"], (0, 0), kandinsky["mask"])
+
+img.save('pi.png')
 # Display the weather data on Inky pHAT
 inky_display.set_image(img)
 inky_display.show()
