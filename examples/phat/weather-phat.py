@@ -147,44 +147,100 @@ def get_kandinsky():
     image = Image.open(kandinsky, ).resize((200, 224))
     print(image)
     return {"mask": create_mask(image),
-     "image": image}
+            "image": image}
 
 
 # Load the FredokaOne font
-font = ImageFont.truetype(FredokaOne, 22)
+font = ImageFont.truetype(FredokaOne, 40)
 
-# Draw lines to frame the weather data
-draw.line((INKY_WIDTH/3, 0, INKY_WIDTH/3, INKY_HEIGHT),
-          1)       # Vertical line
-draw.line((INKY_WIDTH-INKY_WIDTH, INKY_HEIGHT/2, INKY_WIDTH,
-          INKY_HEIGHT/2), 1)      # Horizontal top line
-draw.line((INKY_WIDTH/3*2, 0, INKY_WIDTH/3*2,
-          INKY_HEIGHT), 1)       # Vertical line
+i = 0
+grids = []
+
+# Box stores the four coordinates of the box, top left, top right, bottom left and bottom right
+
+
+class Box:
+    def __init__(self, x1, y1, x2, y2):
+        self.x1 = x1
+        self.y1 = y1
+        self.x2 = x2
+        self.y2 = y2
+
+    def __str__(self):
+        return "({}, {}, {}, {})".format(self.x1, self.y1, self.x2, self.y2)
+
+    def __repr__(self):
+        return self.__str__()
+
+    def top_left(self):
+        return self.x1, self.y1
+
+    def top_right(self):
+        return self.x2, self.y1
+
+    def bottom_left(self):
+        return self.x1, self.y2
+
+    def bottom_right(self):
+        return self.x2, self.y2
+
+    def center(self):
+        return int((self.x1 + self.x2) / 2), int((self.y1 + self.y2) / 2)
+
+    def width(self):
+        return self.x2 - self.x1
+
+    def height(self):
+        return self.y2 - self.y1
+
+
+# iterate over width divided by 3
+for x in range(0, INKY_WIDTH, int(INKY_WIDTH/3)):
+    # iterate over height divided by 2
+    for y in range(0, INKY_HEIGHT, int(INKY_HEIGHT/2)):
+        # draw lines around the grid
+        draw.line((x, y, x + int(INKY_WIDTH/3), y), 1)
+        # calculate the bounding box of the grid
+        bbox = (x, y, x + int(INKY_WIDTH/3), y + int(INKY_HEIGHT/2))
+        # draw the border only of a rectangle
+        draw.rectangle(bbox, fill=None, outline=inky_display.WHITE)
+        # spread tuple into Box
+        grids.append(Box(*bbox))
+
 
 # Write text with weather values to the canvas
 today_date = time.strftime("%d/%m")
 now = time.strftime("%H:%M")
+# get day of week
+day_of_week = time.strftime("%A")
 
 
-draw.text((30, 12), f"Thursday {today_date}", inky_display.WHITE, font=font)
+draw.text(grids[5].center(), today_date, inky_display.WHITE, font=font, anchor="mm")
 
-# Time
-draw.text((36, 120), f"{now}", inky_display.WHITE, font=font)
+draw.text(grids[0].center(), day_of_week, inky_display.WHITE, font=font, anchor="mm")
 
-# Temperature
-draw.text((70, 45), u"{}°C".format(temperature), inky_display.WHITE if temperature <
-          WARNING_TEMP else inky_display.RED, font=font)
+draw.text(grids[1].center(), now, inky_display.WHITE, font=font, anchor="mm")
 
-# Draw the current weather icon over the backdrop
+
+# # Time
+# draw.text((36, 120), f"{now}", inky_display.WHITE, font=font)
+
+# # Temperature
+draw.text( grids[2].center(), u"{}°C".format(temperature), inky_display.WHITE if temperature <
+          WARNING_TEMP else inky_display.BLUE, font=font, anchor="mm",)
+
+
+
+# # Draw the current weather icon over the backdrop
 if weather_icon is not None:
     print(icons[weather_icon], masks[weather_icon])
-    img.paste(icons[weather_icon], (28, 36), masks[weather_icon])
+    img.paste(icons[weather_icon], grids[3].center(), masks[weather_icon])
 else:
     draw.text((28, 36), "?", inky_display.RED, font=font)
 
 
 kandinsky = get_kandinsky()
-img.paste(kandinsky["image"], (400,0))
+img.paste(kandinsky["image"], (grids[4].x1, grids[4].y1))
 
 # Display the weather data on Inky pHAT
 inky_display.set_image(img)
