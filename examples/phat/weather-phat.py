@@ -55,8 +55,6 @@ def get_weather(address):
         weather["summary"] = curr[0].img["alt"].split()[0]
         weather["temperature"] = int(curr[0].find(
             "span", "summary").text.split()[0][:-1])
-        press = soup.find_all("div", "pressure")
-        weather["pressure"] = int(press[0].find("span", "num").text)
         return weather
     else:
         return weather
@@ -111,13 +109,11 @@ icon_map = {
 }
 
 # Placeholder variables
-pressure = 0
 temperature = 0
 weather_icon = None
 
 if weather:
     temperature = weather["temperature"]
-    pressure = weather["pressure"]
     summary = weather["summary"]
 
     for icon in icon_map:
@@ -138,7 +134,7 @@ draw = ImageDraw.Draw(img)
 # Load our icon files and generate masks
 for icon in glob.glob(os.path.join(PATH, "resources/icon-*.png")):
     icon_name = icon.split("icon-")[1].replace(".png", "")
-    icon_image = Image.open(icon).resize((40,40))
+    icon_image = Image.open(icon)
     icons[icon_name] = icon_image
     masks[icon_name] = create_mask(icon_image)
 
@@ -170,12 +166,13 @@ today_date = time.strftime("%d/%m")
 now = time.strftime("%H:%M")
 
 
-draw.text((36, 12), f"Thursday {today_date}", inky_display.WHITE, font=font)
+draw.text((30, 12), f"Thursday {today_date}", inky_display.WHITE, font=font)
 
-draw.text((100, 45), f"{now}", inky_display.WHITE, font=font)
+# Time
+draw.text((36, 120), f"{now}", inky_display.WHITE, font=font)
 
-draw.text((72, 34), "T", inky_display.WHITE, font=font)
-draw.text((92, 34), u"{}°".format(temperature), inky_display.WHITE if temperature <
+# Temperature
+draw.text((70, 45), u"{}°C".format(temperature), inky_display.WHITE if temperature <
           WARNING_TEMP else inky_display.RED, font=font)
 
 # Draw the current weather icon over the backdrop
@@ -187,12 +184,8 @@ else:
 
 
 kandinsky = get_kandinsky()
-print(kandinsky["image"])
-print(img)
-# kandinsky["image"].save("kandinsky.png")
 img.paste(kandinsky["image"], (400,0))
 
-img.save('pi.png')
 # Display the weather data on Inky pHAT
 inky_display.set_image(img)
 inky_display.show()
