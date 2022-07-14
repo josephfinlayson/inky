@@ -148,7 +148,7 @@ def get_kandinsky():
     kandinskys = glob.glob(os.path.join(PATH, "resources/kandinsky/*.png"))
     # get random from array
     kandinsky = random.choice(kandinskys)
-    image = Image.open(kandinsky, ).resize((240, 240))
+    image = Image.open(kandinsky, ).resize((200, 224))
     print(image)
     return {"mask": create_mask(image),
      "image": image}
@@ -172,7 +172,7 @@ now = time.strftime("%H:%M")
 
 draw.text((36, 12), f"Thursday {today_date}", inky_display.WHITE, font=font)
 
-draw.text((36, 45), f"{now}", inky_display.WHITE, font=font)
+draw.text((100, 45), f"{now}", inky_display.WHITE, font=font)
 
 draw.text((72, 34), "T", inky_display.WHITE, font=font)
 draw.text((92, 34), u"{}°".format(temperature), inky_display.WHITE if temperature <
@@ -190,7 +190,7 @@ kandinsky = get_kandinsky()
 print(kandinsky["image"])
 print(img)
 # kandinsky["image"].save("kandinsky.png")
-img.paste(kandinsky["image"], (0, 0), kandinsky["mask"])
+img.paste(kandinsky["image"], (400,0))
 
 img.save('pi.png')
 # Display the weather data on Inky pHAT
