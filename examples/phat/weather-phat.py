@@ -1,19 +1,19 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-from resource import prlimit
-import geocoder
-import random
-from bs4 import BeautifulSoup
 import glob
 import os
+import random
 import time
+from resource import prlimit
 from sys import exit
+
+import geocoder
 import requests
-from font_source_sans_pro import SourceSansProSemibold
+from bs4 import BeautifulSoup
 from font_fredoka_one import FredokaOne
+from font_source_sans_pro import SourceSansProSemibold
 from inky.auto import auto
 from PIL import Image, ImageDraw, ImageFont
-
 
 # Get the current path
 PATH = os.path.dirname(__file__)
@@ -49,6 +49,8 @@ def get_weather(address):
     weather = {}
     res = requests.get(
         "https://darksky.net/forecast/{}/uk212/en".format(",".join([str(c) for c in coords])))
+
+    print("https://darksky.net/forecast/{}/uk212/en".format(",".join([str(c) for c in coords])))
     if res.status_code == 200:
         soup = BeautifulSoup(res.content, "lxml")
         curr = soup.find_all("span", "currently")
@@ -213,10 +215,8 @@ now = time.strftime("%H:%M")
 # get day of week
 day_of_week = time.strftime("%A")
 
-
-draw.text(grids[5].center(), today_date, inky_display.WHITE, font=font, anchor="mm")
-
-draw.text(grids[0].center(), day_of_week, inky_display.WHITE, font=font, anchor="mm")
+draw.text(grids[0].center(), f"""{day_of_week}
+{today_date}""", inky_display.WHITE, font=font, anchor="mm")
 
 draw.text(grids[1].center(), now, inky_display.WHITE, font=font, anchor="mm")
 
@@ -225,15 +225,14 @@ draw.text(grids[1].center(), now, inky_display.WHITE, font=font, anchor="mm")
 # draw.text((36, 120), f"{now}", inky_display.WHITE, font=font)
 
 # # Temperature
-draw.text( grids[2].center(), u"{}°C".format(temperature), inky_display.WHITE if temperature <
+draw.text(grids[2].center(), u"{}°C".format(temperature), inky_display.WHITE if temperature <
           WARNING_TEMP else inky_display.BLUE, font=font, anchor="mm",)
-
 
 
 # # Draw the current weather icon over the backdrop
 if weather_icon is not None:
     print(icons[weather_icon], masks[weather_icon])
-    icon_image = icons[weather_icon].resize((100,100 ))
+    icon_image = icons[weather_icon].resize((100, 100))
     img_w, img_h = icon_image.size
 
     # center the icon in grid[3]
