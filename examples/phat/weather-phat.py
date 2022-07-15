@@ -9,7 +9,7 @@ import os
 import time
 from sys import exit
 import requests
-
+from font_source_sans_pro import SourceSansProSemibold
 from font_fredoka_one import FredokaOne
 from inky.auto import auto
 from PIL import Image, ImageDraw, ImageFont
@@ -150,8 +150,7 @@ def get_kandinsky():
             "image": image}
 
 
-# Load the FredokaOne font
-font = ImageFont.truetype(FredokaOne, 40)
+font = ImageFont.truetype(SourceSansProSemibold, 40)
 
 i = 0
 grids = []
@@ -236,11 +235,12 @@ if weather_icon is not None:
     print(icons[weather_icon], masks[weather_icon])
     icon_image = icons[weather_icon].resize((100,100 ))
     img_w, img_h = icon_image.size
-    # fix this silly logic
-    bg_w = grids[3].width() * 3
-    bg_h = grids[3].height() * 3
 
-    offset = ((bg_w - img_w) // 2, (bg_h - img_h) // 2)
+    # center the icon in grid[3]
+    x = int(grids[3].center()[0] - img_w / 2)
+    y = int(grids[3].center()[1] - img_h / 2)
+
+    offset = (x, y)
 
     img.paste(icon_image, offset)
 
