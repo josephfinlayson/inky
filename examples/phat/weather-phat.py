@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+from datetime import datetime, timezone
 import glob
 import os
 import random
@@ -50,7 +51,8 @@ def get_weather(address):
     res = requests.get(
         "https://darksky.net/forecast/{}/uk212/en".format(",".join([str(c) for c in coords])))
 
-    print("https://darksky.net/forecast/{}/uk212/en".format(",".join([str(c) for c in coords])))
+
+    # https://darksky.net/forecast/52.516,13.3769/uk212/en
     if res.status_code == 200:
         soup = BeautifulSoup(res.content, "lxml")
         curr = soup.find_all("span", "currently")
@@ -211,6 +213,12 @@ for x in range(0, INKY_WIDTH, int(INKY_WIDTH/3)):
 
 # Write text with weather values to the canvas
 today_date = time.strftime("%d/%m")
+
+# convert to CEST tz
+today_date = datetime.strptime(today_date, "%d/%m").replace(
+    tzinfo=timezone('UTC')).astimezone(timezone('Europe/Berlin')).strftime("%d/%m")
+
+
 now = time.strftime("%H:%M")
 # get day of week
 day_of_week = time.strftime("%A")
