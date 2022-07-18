@@ -1,13 +1,13 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 import glob
 import os
 import random
 import time
 from resource import prlimit
 from sys import exit
-
+import pytz
 import geocoder
 import requests
 from bs4 import BeautifulSoup
@@ -44,6 +44,12 @@ def get_coords(address):
     return coords
 
 
+def get_min_max(el):
+    return {
+        "max": el.findAll('span', "maxTemp")[0].text,
+        "min": el.findAll('span', "minTemp")[0].text
+
+    }
 # Query Dark Sky (https://darksky.net/) to scrape current weather data
 def get_weather(address):
     coords = get_coords(address)
@@ -56,6 +62,12 @@ def get_weather(address):
     if res.status_code == 200:
         soup = BeautifulSoup(res.content, "lxml")
         curr = soup.find_all("span", "currently")
+        tomorrow = soup.find_all("a", attrs={"data-day":"1"})
+        next_day = soup.find_all("a", attrs={"data-day":"2"})
+        tomorrow_min_max = get_min_max(tomorrow[0])
+        next_day_min_max = get_min_max(next_day[0])
+        weather["tomorrow"] = tomorrow_min_max
+        weather["next_day"] = next_day_min_max
         weather["summary"] = curr[0].img["alt"].split()[0]
         weather["temperature"] = int(curr[0].find(
             "span", "summary").text.split()[0][:-1])
@@ -206,9 +218,25 @@ for x in range(0, INKY_WIDTH, int(INKY_WIDTH/3)):
         # calculate the bounding box of the grid
         bbox = (x, y, x + int(INKY_WIDTH/3), y + int(INKY_HEIGHT/2))
         # draw the border only of a rectangle
-        draw.rectangle(bbox, fill=None, outline=inky_display.WHITE)
+        # draw.rectangle(bbox, fill=None, outline=inky_display.WHITE)
         # spread tuple into Box
         grids.append(Box(*bbox))
+
+
+grids2 = []
+# iterate over width divided by 3
+for x in range(grids[5].x1, grids[5].width() + grids[5].x1, int(grids[5].width()/2)):
+    # iterate over height divided by 2
+    for y in range(grids[5].y1, grids[5].height() + grids[5].y1, int(grids[5].height()/2)):
+        # draw lines around the grid
+        draw.line((x, y, x + int(grids[5].width()/2), y), 1)
+        # calculate the bounding box of the grid
+        bbox = (x, y, x + int(INKY_WIDTH/3), y + int(INKY_HEIGHT/2))
+        # draw the border only of a rectangle
+        draw.rectangle(bbox, fill=None, outline=inky_display.WHITE)
+        # spread tuple into Box
+        grids2.append(Box(*bbox))
+
 
 
 # Write text with weather values to the canvas
@@ -216,7 +244,7 @@ today_date = time.strftime("%d/%m")
 
 # convert to CEST tz
 today_date = datetime.strptime(today_date, "%d/%m").replace(
-    tzinfo=timezone('UTC')).astimezone(timezone('Europe/Berlin')).strftime("%d/%m")
+    tzinfo=timezone(pytz.timezone('UTC').utcoffset(datetime.now()))).astimezone(timezone(pytz.timezone('Europe/Berlin').utcoffset(datetime.now()))).strftime("%d/%m")
 
 
 now = time.strftime("%H:%M")
