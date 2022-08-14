@@ -7,6 +7,7 @@ import random
 import time
 from resource import prlimit
 from sys import exit
+from typing import List, Tuple
 import pytz
 import geocoder
 import requests
@@ -16,6 +17,7 @@ from font_source_sans_pro import SourceSansProSemibold
 from inky.auto import auto
 from PIL import Image, ImageDraw, ImageFont
 from grid import Box
+
 # Get the current path
 PATH = os.path.dirname(__file__)
 
@@ -51,6 +53,8 @@ def get_min_max(el):
 
     }
 # Query Dark Sky (https://darksky.net/) to scrape current weather data
+
+
 def get_weather(address):
     coords = get_coords(address)
     weather = {}
@@ -168,45 +172,31 @@ def get_kandinsky():
 
 font = ImageFont.truetype(SourceSansProSemibold, 40)
 
-i = 0
-grids = []
+def draw_grid(width, height, number_of_grids_vertically, number_of_grids_horizontally, coordinates: Tuple[int, int]):
+    grids = []
+    starting_x, starting_y = coordinates
+    for x in range(starting_x, width + starting_x, int(width/number_of_grids_vertically)):
+        # iterate over height divided by 2
+        for y in range(starting_y, height + starting_y, int(height/number_of_grids_horizontally) ):
 
-# Box stores the four coordinates of the box, top left, top right, bottom left and bottom right
+            # draw lines around the grid
+            draw.line((x, y, x + int(width/number_of_grids_vertically), y), 1)
+            # calculate the bounding box of the grid
+            bbox = (x, y, x + int(width/number_of_grids_vertically), y + int(height/2))
+            # draw the border only of a rectangle
+            draw.rectangle(bbox, fill=None, outline=inky_display.WHITE)
+            # spread tuple into Box
+            grids.append(Box(*bbox))
+    
+    return grids
 
+main_grids: List[Box] = draw_grid(INKY_WIDTH, INKY_HEIGHT, 3, 2, (0,0))
+last_main_grid_box = main_grids[5]
+min_max_grids = draw_grid(last_main_grid_box.width(), last_main_grid_box.height(), 2, 2, (last_main_grid_box.x1, last_main_grid_box.y1))
 
-# iterate over width divided by 3
-for x in range(0, INKY_WIDTH, int(INKY_WIDTH/3)):
-    # iterate over height divided by 2
-    for y in range(0, INKY_HEIGHT, int(INKY_HEIGHT/2)):
-        # draw lines around the grid
-        draw.line((x, y, x + int(INKY_WIDTH/3), y), 1)
-        # calculate the bounding box of the grid
-        bbox = (x, y, x + int(INKY_WIDTH/3), y + int(INKY_HEIGHT/2))
-        # draw the border only of a rectangle
-        # draw.rectangle(bbox, fill=None, outline=inky_display.WHITE)
-        # spread tuple into Box
-        grids.append(Box(*bbox))
-
-
-grids2 = []
-# iterate over width divided by 3
-for x in range(grids[5].x1, grids[5].width() + grids[5].x1, int(grids[5].width()/2)):
-    # iterate over height divided by 2
-    for y in range(grids[5].y1, grids[5].height() + grids[5].y1, int(grids[5].height()/2)):
-        # draw lines around the grid
-        draw.line((x, y, x + int(grids[5].width()/2), y), 1)
-        # calculate the bounding box of the grid
-        bbox = (x, y, x + int(INKY_WIDTH/3), y + int(INKY_HEIGHT/2))
-        # draw the border only of a rectangle
-        draw.rectangle(bbox, fill=None, outline=inky_display.WHITE)
-        # spread tuple into Box
-        grids2.append(Box(*bbox))
-
-
-
+# Main grids
 # Write text with weather values to the canvas
 today_date = time.strftime("%d/%m")
-
 # convert to CEST tz
 today_date = datetime.strptime(today_date, "%d/%m").replace(
     tzinfo=timezone(pytz.timezone('UTC').utcoffset(datetime.now()))).astimezone(timezone(pytz.timezone('Europe/Berlin').utcoffset(datetime.now()))).strftime("%d/%m")
@@ -216,17 +206,13 @@ now = time.strftime("%H:%M")
 # get day of week
 day_of_week = time.strftime("%A")
 
-draw.text(grids[0].center(), f"""{day_of_week}
+draw.text(main_grids[0].center(), f"""{day_of_week}
 {today_date}""", inky_display.WHITE, font=font, anchor="mm")
 
-draw.text(grids[1].center(), now, inky_display.WHITE, font=font, anchor="mm")
-
-
-# # Time
-# draw.text((36, 120), f"{now}", inky_display.WHITE, font=font)
+draw.text(main_grids[1].center(), now, inky_display.WHITE, font=font, anchor="mm")
 
 # # Temperature
-draw.text(grids[2].center(), u"{}°C".format(temperature), inky_display.WHITE if temperature <
+draw.text(main_grids[2].center(), u"{}°C".format(temperature), inky_display.WHITE if temperature <
           WARNING_TEMP else inky_display.BLUE, font=font, anchor="mm",)
 
 
@@ -237,8 +223,8 @@ if weather_icon is not None:
     img_w, img_h = icon_image.size
 
     # center the icon in grid[3]
-    x = int(grids[3].center()[0] - img_w / 2)
-    y = int(grids[3].center()[1] - img_h / 2)
+    x = int(main_grids[3].center()[0] - img_w / 2)
+    y = int(main_grids[3].center()[1] - img_h / 2)
 
     offset = (x, y)
 
@@ -248,8 +234,29 @@ else:
     draw.text((28, 36), "?", inky_display.RED, font=font)
 
 
+
+# Draw min-max temperature in box
+
 kandinsky = get_kandinsky()
-img.paste(kandinsky["image"], (grids[4].x1, grids[4].y1))
+img.paste(kandinsky["image"], (main_grids[4].x1, main_grids[4].y1))
+
+# minmax grid
+print(weather)
+max_temp = weather["tomorrow"]["max"]
+# max_temp = weather["temperature"]["min"]
+print(min_max_grids)
+draw.text(min_max_grids[0].center(), u"tom:", inky_display.WHITE, font=font, anchor="mm")
+
+tom_grid = draw_grid(min_max_grids[0].width(), min_max_grids[0].height(), 1, 2, (min_max_grids[2].x1, min_max_grids[2].y1))
+draw.text(tom_grid[0].center(), weather["tomorrow"]["min"], inky_display.WHITE, font=font, anchor="mm")
+draw.text(tom_grid[1].center(), weather["tomorrow"]["max"], inky_display.WHITE, font=font, anchor="mm")
+
+draw.text(min_max_grids[1].center(), u"next:", inky_display.WHITE, font=font, anchor="mm")
+next_grid = draw_grid(min_max_grids[3].width(), min_max_grids[3].height(), 1, 2, (min_max_grids[3].x1, min_max_grids[3].y1))
+
+draw.text(next_grid[0].center(), weather["next_day"]["min"], inky_display.WHITE, font=font, anchor="mm")
+draw.text(next_grid[1].center(), weather["next_day"]["max"], inky_display.WHITE, font=font, anchor="mm")
+
 
 # Display the weather data on Inky pHAT
 inky_display.set_image(img)
