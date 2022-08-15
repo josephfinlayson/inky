@@ -22,10 +22,7 @@ from grid import Box
 PATH = os.path.dirname(__file__)
 
 # Set up the display
-try:
-    inky_display = auto(ask_user=True, verbose=True)
-except TypeError:
-    raise TypeError("You need to update the Inky library to >= v1.1.0")
+inky_display = auto(ask_user=True, verbose=True)
 
 inky_display.set_border(inky_display.BLACK)
 
@@ -50,7 +47,6 @@ def get_min_max(el):
     return {
         "max": el.findAll('span', "maxTemp")[0].text,
         "min": el.findAll('span', "minTemp")[0].text
-
     }
 # Query Dark Sky (https://darksky.net/) to scrape current weather data
 
@@ -161,7 +157,7 @@ for icon in glob.glob(os.path.join(PATH, "resources/icon-*.png")):
 
 def get_kandinsky():
     # pick random image in file
-    kandinskys = glob.glob(os.path.join(PATH, "resources/kandinsky/*.png"))
+    kandinskys = glob.glob(os.path.join(PATH, "resources/kandinsky/*"))
     # get random from array
     kandinsky = random.choice(kandinskys)
     image = Image.open(kandinsky, ).resize((200, 224))
@@ -248,14 +244,14 @@ print(min_max_grids)
 draw.text(min_max_grids[0].center(), u"tom:", inky_display.WHITE, font=font, anchor="mm")
 
 tom_grid = draw_grid(min_max_grids[0].width(), min_max_grids[0].height(), 1, 2, (min_max_grids[2].x1, min_max_grids[2].y1))
-draw.text(tom_grid[0].center(), weather["tomorrow"]["min"], inky_display.WHITE, font=font, anchor="mm")
-draw.text(tom_grid[1].center(), weather["tomorrow"]["max"], inky_display.WHITE, font=font, anchor="mm")
+draw.text(tom_grid[1].center(), weather["tomorrow"]["min"], inky_display.WHITE, font=font, anchor="mm")
+draw.text(tom_grid[0].center(), weather["tomorrow"]["max"], inky_display.WHITE, font=font, anchor="mm")
 
 draw.text(min_max_grids[1].center(), u"next:", inky_display.WHITE, font=font, anchor="mm")
 next_grid = draw_grid(min_max_grids[3].width(), min_max_grids[3].height(), 1, 2, (min_max_grids[3].x1, min_max_grids[3].y1))
 
-draw.text(next_grid[0].center(), weather["next_day"]["min"], inky_display.WHITE, font=font, anchor="mm")
-draw.text(next_grid[1].center(), weather["next_day"]["max"], inky_display.WHITE, font=font, anchor="mm")
+draw.text(next_grid[1].center(), weather["next_day"]["min"], inky_display.WHITE, font=font, anchor="mm")
+draw.text(next_grid[0].center(), weather["next_day"]["max"], inky_display.WHITE, font=font, anchor="mm")
 
 
 # Display the weather data on Inky pHAT
