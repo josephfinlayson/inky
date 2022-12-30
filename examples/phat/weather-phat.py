@@ -1,22 +1,22 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-from datetime import datetime, timedelta, timezone
 import glob
 import os
 import random
 import time
-from resource import prlimit
-from sys import exit
+from utils import draw_grid
+from datetime import datetime, timezone
 from typing import List, Tuple
-import pytz
+
 import geocoder
+import pytz
 import requests
 from bs4 import BeautifulSoup
-from font_fredoka_one import FredokaOne
 from font_source_sans_pro import SourceSansProSemibold
 from inky.auto import auto
 from PIL import Image, ImageDraw, ImageFont
-from grid import Box
+
+from Box import Box
 
 # Get the current path
 PATH = os.path.dirname(__file__)
@@ -168,27 +168,9 @@ def get_kandinsky():
 
 font = ImageFont.truetype(SourceSansProSemibold, 40)
 
-def draw_grid(width, height, number_of_grids_vertically, number_of_grids_horizontally, coordinates: Tuple[int, int]):
-    grids = []
-    starting_x, starting_y = coordinates
-    for x in range(starting_x, width + starting_x, int(width/number_of_grids_vertically)):
-        # iterate over height divided by 2
-        for y in range(starting_y, height + starting_y, int(height/number_of_grids_horizontally) ):
-
-            # draw lines around the grid
-            draw.line((x, y, x + int(width/number_of_grids_vertically), y), 1)
-            # calculate the bounding box of the grid
-            bbox = (x, y, x + int(width/number_of_grids_vertically), y + int(height/2))
-            # draw the border only of a rectangle
-            draw.rectangle(bbox, fill=None, outline=inky_display.WHITE)
-            # spread tuple into Box
-            grids.append(Box(*bbox))
-    
-    return grids
-
-main_grids: List[Box] = draw_grid(INKY_WIDTH, INKY_HEIGHT, 3, 2, (0,0))
+main_grids: List[Box] = draw_grid(INKY_WIDTH, INKY_HEIGHT, 3, 2, (0,0), draw, inky_display)
 last_main_grid_box = main_grids[5]
-min_max_grids = draw_grid(last_main_grid_box.width(), last_main_grid_box.height(), 2, 2, (last_main_grid_box.x1, last_main_grid_box.y1))
+min_max_grids = draw_grid(last_main_grid_box.width(), last_main_grid_box.height(), 2, 2, (last_main_grid_box.x1, last_main_grid_box.y1), draw, inky_display)
 
 # Main grids
 # Write text with weather values to the canvas
@@ -230,6 +212,11 @@ else:
     draw.text((28, 36), "?", inky_display.RED, font=font)
 
 
+def draw_text(location: tuple, text_content: str, color):
+    draw.text(location, text_content, color or inky_display.RED, font=font)
+
+
+
 
 # Draw min-max temperature in box
 
@@ -243,12 +230,12 @@ max_temp = weather["tomorrow"]["max"]
 print(min_max_grids)
 draw.text(min_max_grids[0].center(), u"tom:", inky_display.WHITE, font=font, anchor="mm")
 
-tom_grid = draw_grid(min_max_grids[0].width(), min_max_grids[0].height(), 1, 2, (min_max_grids[2].x1, min_max_grids[2].y1))
+tom_grid = draw_grid(min_max_grids[0].width(), min_max_grids[0].height(), 1, 2, (min_max_grids[2].x1, min_max_grids[2].y1), draw, inky_display)
 draw.text(tom_grid[1].center(), weather["tomorrow"]["min"], inky_display.WHITE, font=font, anchor="mm")
 draw.text(tom_grid[0].center(), weather["tomorrow"]["max"], inky_display.WHITE, font=font, anchor="mm")
 
 draw.text(min_max_grids[1].center(), u"next:", inky_display.WHITE, font=font, anchor="mm")
-next_grid = draw_grid(min_max_grids[3].width(), min_max_grids[3].height(), 1, 2, (min_max_grids[3].x1, min_max_grids[3].y1))
+next_grid = draw_grid(min_max_grids[3].width(), min_max_grids[3].height(), 1, 2, (min_max_grids[3].x1, min_max_grids[3].y1), draw, inky_display)
 
 draw.text(next_grid[1].center(), weather["next_day"]["min"], inky_display.WHITE, font=font, anchor="mm")
 draw.text(next_grid[0].center(), weather["next_day"]["max"], inky_display.WHITE, font=font, anchor="mm")
