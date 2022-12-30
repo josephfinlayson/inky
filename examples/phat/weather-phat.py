@@ -14,7 +14,7 @@ import requests
 from bs4 import BeautifulSoup
 from font_source_sans_pro import SourceSansProSemibold
 from inky.auto import auto
-from PIL import Image, ImageDraw, ImageFont
+from PIL import Image, ImageDraw, ImageFont, ImageOps
 
 from Box import Box
 
@@ -67,7 +67,9 @@ def get_weather(address):
         tomorrow_min_max = get_min_max(tomorrow[0])
         next_day_min_max = get_min_max(next_day[0])
         weather["tomorrow"] = tomorrow_min_max
+        weather["tomorrow"]["summary"] = tomorrow[0].img["alt"].split()[0]
         weather["next_day"] = next_day_min_max
+        weather["next_day"]["summary"] = next_day[0].img["alt"].split()[0]
         weather["summary"] = curr[0].img["alt"].split()[0]
         weather["temperature"] = int(curr[0].find(
             "span", "summary").text.split()[0][:-1])
@@ -126,22 +128,27 @@ icon_map = {
 
 # Placeholder variables
 temperature = 0
-weather_icon = None
+today_weather_name = None
+tomorrow_weather_name = None
+next_weather_name = None
 
 if weather:
     temperature = weather["temperature"]
     summary = weather["summary"]
+    tomorrow_summary = weather["tomorrow"]["summary"]
+    next_summary = weather["next_day"]["summary"]
 
     for icon in icon_map:
         if summary in icon_map[icon]:
-            weather_icon = icon
-            break
+            today_weather_name = icon
+        if tomorrow_summary in icon_map[icon]:
+            tomorrow_weather_name = icon
+        if next_summary in icon_map[icon]:
+            next_weather_name = icon
 
 else:
     print("Warning, no weather information found!")
 
-
-print(inky_display.resolution)
 # Create a new canvas to draw on
 img = Image.new("RGB", inky_display.resolution,
                 'white').resize(inky_display.resolution)
@@ -150,7 +157,13 @@ draw = ImageDraw.Draw(img)
 # Load our icon files and generate masks
 for icon in glob.glob(os.path.join(PATH, "resources/icon-*.png")):
     icon_name = icon.split("icon-")[1].replace(".png", "")
-    icon_image = Image.open(icon)
+    icon_image = Image.open(icon).convert("RGBA")
+    # convert transparent pixels to white
+    new_image = Image.new("RGBA", icon_image.size, "WHITE") # Create a white rgba background
+    new_image.paste(icon_image, (0, 0), icon_image)              # Paste the image on the background. Go to the links given below for details.
+    new_image.convert('RGB').save(icon + 'test.jpg', "JPEG")  # Save as JPEG
+    # invert image color
+    # icon_image = ImageOps.invert(icon_image)
     icons[icon_name] = icon_image
     masks[icon_name] = create_mask(icon_image)
 
@@ -161,7 +174,6 @@ def get_kandinsky():
     # get random from array
     kandinsky = random.choice(kandinskys)
     image = Image.open(kandinsky, ).resize((200, 224))
-    print(image)
     return {"mask": create_mask(image),
             "image": image}
 
@@ -189,24 +201,49 @@ draw.text(main_grids[0].center(), f"""{day_of_week}
 
 draw.text(main_grids[1].center(), now, inky_display.WHITE, font=font, anchor="mm")
 
+
+def get_weather_icon(weather_name, resize=(100, 100)):
+    if weather_name is None:
+        return None
+    return icons[weather_name].resize(resize)
+
+def get_offset_for_weather_icon(box, icon):
+    img_w, img_h = icon.size
+
+    x = int(box.center()[0] - img_w / 2)
+    y = int(box.center()[1] - img_h / 2)
+    offset = (x, y)
+    return offset
+
+
 # # Temperature
 draw.text(main_grids[2].center(), u"{}°C".format(temperature), inky_display.WHITE if temperature <
           WARNING_TEMP else inky_display.BLUE, font=font, anchor="mm",)
 
 
 # # Draw the current weather icon over the backdrop
-if weather_icon is not None:
-    print(icons[weather_icon], masks[weather_icon])
-    icon_image = icons[weather_icon].resize((100, 100))
-    img_w, img_h = icon_image.size
+if today_weather_name is not None:
+    print('today_weather_name: ', today_weather_name)
+    today_icon_image = get_weather_icon(today_weather_name)
+    tomorrow_icon_image = get_weather_icon(tomorrow_weather_name, resize=(50, 50))
+    next_icon_image = get_weather_icon(next_weather_name, resize=(50, 50))
 
-    # center the icon in grid[3]
-    x = int(main_grids[3].center()[0] - img_w / 2)
-    y = int(main_grids[3].center()[1] - img_h / 2)
+    weather_icon_grid = main_grids[3]
+    weather_icon_vertical_grid = draw_grid(weather_icon_grid.width(), weather_icon_grid.height(), 1, 2, (weather_icon_grid.x1, weather_icon_grid.y1), draw, inky_display)    
 
-    offset = (x, y)
+    todays_weather_box = weather_icon_vertical_grid[0]
+    today_offset = get_offset_for_weather_icon(todays_weather_box, today_icon_image)
+    
+    # tomorrow and next weather grid
+    tomorrow_weather_box = weather_icon_vertical_grid[1]
+    tomorrow_weather_box_grid = draw_grid(tomorrow_weather_box.width(), tomorrow_weather_box.height() * 2, 2, 1, (tomorrow_weather_box.x1, tomorrow_weather_box.y1), draw, inky_display)
+    
+    tomorrow_offset = get_offset_for_weather_icon(tomorrow_weather_box_grid[0], tomorrow_icon_image)
+    next_offset = get_offset_for_weather_icon(tomorrow_weather_box_grid[1], next_icon_image)
 
-    img.paste(icon_image, offset)
+    img.paste(today_icon_image, today_offset)
+    img.paste(tomorrow_icon_image, tomorrow_offset)
+    img.paste(next_icon_image, next_offset)
 
 else:
     draw.text((28, 36), "?", inky_display.RED, font=font)
@@ -224,10 +261,8 @@ kandinsky = get_kandinsky()
 img.paste(kandinsky["image"], (main_grids[4].x1, main_grids[4].y1))
 
 # minmax grid
-print(weather)
 max_temp = weather["tomorrow"]["max"]
 # max_temp = weather["temperature"]["min"]
-print(min_max_grids)
 draw.text(min_max_grids[0].center(), u"tom:", inky_display.WHITE, font=font, anchor="mm")
 
 tom_grid = draw_grid(min_max_grids[0].width(), min_max_grids[0].height(), 1, 2, (min_max_grids[2].x1, min_max_grids[2].y1), draw, inky_display)
