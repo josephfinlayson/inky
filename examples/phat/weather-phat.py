@@ -193,7 +193,7 @@ now = time.strftime("%H:%M")
 day_of_week = time.strftime("%A")
 
 draw.text(main_grids[0].center(), f"""{day_of_week}
-{today_date}""", inky_display.WHITE, font=font, anchor="mm")
+    {  today_date}""", inky_display.WHITE, font=font, anchor="mm")
 
 draw.text(main_grids[1].center(), now, inky_display.WHITE, font=font, anchor="mm")
 
