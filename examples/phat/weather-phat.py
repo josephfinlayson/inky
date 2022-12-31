@@ -155,15 +155,11 @@ img = Image.new("RGB", inky_display.resolution,
 draw = ImageDraw.Draw(img)
 
 # Load our icon files and generate masks
-for icon in glob.glob(os.path.join(PATH, "resources/icon-*.png")):
-    icon_name = icon.split("icon-")[1].replace(".png", "")
-    icon_image = Image.open(icon).convert("RGBA")
-    # convert transparent pixels to white
-    new_image = Image.new("RGBA", icon_image.size, "WHITE") # Create a white rgba background
-    new_image.paste(icon_image, (0, 0), icon_image)              # Paste the image on the background. Go to the links given below for details.
-    new_image.convert('RGB').save(icon + 'test.jpg', "JPEG")  # Save as JPEG
+for icon in glob.glob(os.path.join(PATH, "resources/icon-*.jpg")):
+    icon_name = icon.split("icon-")[1].replace(".jpg", "")
+    icon_image = Image.open(icon)
     # invert image color
-    # icon_image = ImageOps.invert(icon_image)
+    icon_image = ImageOps.invert(icon_image)
     icons[icon_name] = icon_image
     masks[icon_name] = create_mask(icon_image)
 
