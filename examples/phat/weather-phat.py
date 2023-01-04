@@ -5,7 +5,7 @@ import os
 import random
 import time
 from utils import draw_grid
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from typing import List, Tuple
 
 import geocoder
@@ -62,36 +62,42 @@ def get_weather(address):
         "max": "",
         "min": ""
     }}
-    res = requests.get(
-        "https://darksky.net/forecast/{}/uk212/en".format(",".join([str(c) for c in coords])))
-    coords[0]
     api_key = "dd4e4011d95b7f9a60842291284c6569"
-    print(coords)
-    url = f"https://api.openweathermap.org/data/2.5/weather?lat={coords[0]}&lon={coords[1]}&appid={api_key}&units=metric" 
-    print(url)
-    response = requests.get(url).json()
-    print(response)
+    today_url = f"https://api.openweathermap.org/data/2.5/weather?lat={coords[0]}&lon={coords[1]}&appid={api_key}&units=metric" 
+    response = requests.get(today_url).json()
     weather["today"]["summary"] = response["weather"][0]["main"].lower()
     weather["today"]["temperature"] = response["main"]["temp"]
 
-    # # https://darksky.net/forecast/52.516,13.3769/uk212/en
-    # if res.status_code == 200:
-    #     soup = BeautifulSoup(res.content, "lxml")
-    #     curr = soup.find_all("span", "currently")
-    #     tomorrow = soup.find_all("a", attrs={"data-day":"1"})
-    #     next_day = soup.find_all("a", attrs={"data-day":"2"})
-    #     print(tomorrow)
-    #     tomorrow_min_max = get_min_max(tomorrow[0])
-    #     next_day_min_max = get_min_max(next_day[0])
-    #     weather["tomorrow"] = tomorrow_min_max
-    #     weather["tomorrow"]["summary"] = tomorrow[0].img["alt"].split()[0]
-    #     weather["next_day"] = next_day_min_max
-    #     weather["next_day"]["summary"] = next_day[0].img["alt"].split()[0]
-    #     weather["summary"] = curr[0].img["alt"].split()[0]
-    #     weather["temperature"] = int(curr[0].find(
-    #         "span", "summary").text.split()[0][:-1])
-    #     return weather
-    # else:
+    forecast_url = f"https://api.openweathermap.org/data/2.5/forecast?lat={coords[0]}&lon={coords[1]}&appid={api_key}&units=metric"
+
+    response = requests.get(forecast_url).json()
+    # group by day
+    days = {}
+    for item in response["list"]:
+        day = datetime.fromtimestamp(item["dt"]).strftime("%Y-%m-%d")
+        if day not in days:
+            days[day] = []
+        days[day].append(item)
+    
+    # get min and max for each day
+    for day in days:
+        temps = [item["main"]["temp"] for item in days[day]]
+        weather[day] = {
+            "summary": days[day][0]["weather"][0]["main"].lower(),
+            "max": str(round(max(temps))),
+            "min": str(round(min(temps)))
+        }
+    # get tomorrow from days
+    tomorrow = datetime.now() + timedelta(days=1)
+    tomorrow = tomorrow.strftime("%Y-%m-%d")
+    weather["tomorrow"] = weather[tomorrow]
+
+    # get next day from days
+    next_day = datetime.now() + timedelta(days=2)
+    next_day = next_day.strftime("%Y-%m-%d")
+    weather["next_day"] = weather[next_day]
+    print(weather["next_day"])
+
     return weather
 
 
@@ -137,7 +143,7 @@ weather = get_weather(location_string)
 icon_map = {
     "snow": ["snow", "sleet"],
     "rain": ["rain"],
-    "cloud": ["fog", "cloudy", "partly-cloudy-day", "partly-cloudy-night"],
+    "cloud": ["fog", "cloudy", "partly-cloudy-day", "partly-cloudy-night", "clouds"],
     "sun": ["clear-day", "clear-night"],
     "storm": [],
     "wind": ["wind"]
@@ -154,7 +160,7 @@ if weather:
     summary = weather["today"]["summary"]
     tomorrow_summary = weather["tomorrow"]["summary"]
     next_summary = weather["next_day"]["summary"]
-
+    print(next_summary)
     for icon in icon_map:
         if summary in icon_map[icon]:
             today_weather_name = icon
@@ -240,6 +246,7 @@ if today_weather_name is not None:
     print('today_weather_name: ', today_weather_name)
     today_icon_image = get_weather_icon(today_weather_name)
     tomorrow_icon_image = get_weather_icon(tomorrow_weather_name, resize=(50, 50))
+    print(next_weather_name)
     next_icon_image = get_weather_icon(next_weather_name, resize=(50, 50))
 
     weather_icon_grid = main_grids[3]
@@ -254,11 +261,13 @@ if today_weather_name is not None:
     
     tomorrow_offset = get_offset_for_weather_icon(tomorrow_weather_box_grid[0], tomorrow_icon_image)
     next_offset = get_offset_for_weather_icon(tomorrow_weather_box_grid[1], next_icon_image)
-
-    img.paste(today_icon_image, today_offset)
-    # img.paste(tomorrow_icon_image, tomorrow_offset)
-    # img.paste(next_icon_image, next_offset)
-
+    print(next_icon_image)
+    try: 
+        img.paste(today_icon_image, today_offset)
+        img.paste(tomorrow_icon_image, tomorrow_offset)
+        img.paste(next_icon_image, next_offset)
+    except:
+        print('weather icon not found')
 else:
     draw.text((28, 36), "?", inky_display.RED, font=font)
 
