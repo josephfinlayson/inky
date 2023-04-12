@@ -1,0 +1,37 @@
+Metadata-Version: 2.0
+Name: font-source-sans-pro
+Version: 0.0.1
+Summary: Source Sans Pro, sans-serif font
+Home-page: https://github.com/pimoroni/fonts-python
+Author: Philip Howard
+Author-email: phil@pimoroni.com
+License: SIL OFL 1.1
+Keywords: Source Sans Pro Font
+Platform: UNKNOWN
+Classifier: Development Status :: 5 - Production/Stable
+Classifier: Operating System :: POSIX :: Linux
+Classifier: License :: OSI Approved :: SIL Open Font License 1.1 (OFL-1.1)
+Classifier: Intended Audience :: Developers
+Classifier: Programming Language :: Python :: 2.6
+Classifier: Programming Language :: Python :: 2.7
+Classifier: Programming Language :: Python :: 3
+Classifier: Topic :: Software Development
+Classifier: Topic :: Text Processing :: Fonts
+
+Fonts: Source Sans Pro
+======================
+
+Source Sans Pro is a sans-serif open source font. For more information see: https://github.com/adobe-fonts/source-sans-pro
+
+Preview: https://fontlibrary.org/en/font/source-sans-pro
+
+This font has been repackaged for the Python Fonts module: https://pypi.org/project/fonts/
+
+Source Sans Pro is licensed and redistributed under the SIL Open Font License: https://scripts.sil.org/cms/scripts/page.php?site_id=nrsi&id=OFL
+
+0.0.1
+=====
+
+* Initial Release
+
+

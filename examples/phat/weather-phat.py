@@ -11,7 +11,6 @@ from typing import List, Tuple
 import geocoder
 import pytz
 import requests
-from bs4 import BeautifulSoup
 from font_source_sans_pro import SourceSansProSemibold
 from inky.auto import auto
 from PIL import Image, ImageDraw, ImageFont, ImageOps
@@ -300,5 +299,5 @@ draw.text(next_grid[0].center(), weather["next_day"]["max"], inky_display.WHITE,
 
 
 # Display the weather data on Inky pHAT
-inky_display.set_image(img)
+inky_display.set_image(img, saturation=0.5)
 inky_display.show()

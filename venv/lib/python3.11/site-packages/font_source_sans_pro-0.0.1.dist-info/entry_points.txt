@@ -1,0 +1,6 @@
+[fonts_otf]
+sourcesansotf = font_source_sans_pro:font_files_otf
+
+[fonts_ttf]
+sourcesansttf = font_source_sans_pro:font_files_ttf
+
