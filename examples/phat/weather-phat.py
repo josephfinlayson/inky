@@ -137,7 +137,6 @@ location_string = "{city}, {countrycode}".format(
     city=CITY, countrycode=COUNTRYCODE)
 weather = get_weather(location_string)
 
-# This maps the weather summary from Dark Sky
 # to the appropriate weather icons
 icon_map = {
     "snow": ["snow", "sleet"],
@@ -240,35 +239,54 @@ draw.text(main_grids[2].center(), u"{}°C".format(temperature), inky_display.WHI
           WARNING_TEMP else inky_display.BLUE, font=font, anchor="mm",)
 
 
-# # Draw the current weather icon over the backdrop
-if today_weather_name is not None:
-    print('today_weather_name: ', today_weather_name)
+# # # Draw the current weather icon over the backdrop
+try:
     today_icon_image = get_weather_icon(today_weather_name)
+except Exception:
+    today_icon_image = get_weather_icon("smiley")
+    # write the name of the missing weather
+    draw.text(main_grids[2].center(), today_weather_name, inky_display.WHITE, font=font, anchor="mm",)
+try:
     tomorrow_icon_image = get_weather_icon(tomorrow_weather_name, resize=(50, 50))
-    print(next_weather_name)
+except Exception:
+    tomorrow_icon_image = get_weather_icon("smiley")
+    draw.text(main_grids[2].center(), tomorrow_weather_name, inky_display.WHITE, font=font, anchor="mm",)
+
+try:
     next_icon_image = get_weather_icon(next_weather_name, resize=(50, 50))
+except Exception:
+    next_icon_image = get_weather_icon("smiley")
+    draw.text(main_grids[2].center(), next_weather_name, inky_display.WHITE, font=font, anchor="mm",)
 
-    weather_icon_grid = main_grids[3]
-    weather_icon_vertical_grid = draw_grid(weather_icon_grid.width(), weather_icon_grid.height(), 1, 2, (weather_icon_grid.x1, weather_icon_grid.y1), draw, inky_display)    
 
-    todays_weather_box = weather_icon_vertical_grid[0]
-    today_offset = get_offset_for_weather_icon(todays_weather_box, today_icon_image)
-    
-    # tomorrow and next weather grid
-    tomorrow_weather_box = weather_icon_vertical_grid[1]
-    tomorrow_weather_box_grid = draw_grid(tomorrow_weather_box.width(), tomorrow_weather_box.height() * 2, 2, 1, (tomorrow_weather_box.x1, tomorrow_weather_box.y1), draw, inky_display)
-    
-    tomorrow_offset = get_offset_for_weather_icon(tomorrow_weather_box_grid[0], tomorrow_icon_image)
-    next_offset = get_offset_for_weather_icon(tomorrow_weather_box_grid[1], next_icon_image)
-    print(next_icon_image)
-    try: 
-        img.paste(today_icon_image, today_offset)
-        img.paste(tomorrow_icon_image, tomorrow_offset)
-        img.paste(next_icon_image, next_offset)
-    except:
-        print('weather icon not found')
-else:
-    draw.text((28, 36), "?", inky_display.RED, font=font)
+# This is the grid of the weather icon
+weather_icon_grid = main_grids[3]
+
+# Draw a grid inside the weather icon grid
+weather_icon_vertical_grid = draw_grid(weather_icon_grid.width(), weather_icon_grid.height(), 1, 2, (weather_icon_grid.x1, weather_icon_grid.y1), draw, inky_display)    
+
+# This is the top box in the weather icon grid
+todays_weather_box = weather_icon_vertical_grid[0]
+# This is the top left corner of the weather icon grid
+today_offset = get_offset_for_weather_icon(todays_weather_box, today_icon_image)
+
+# This is the bottom box in the weather icon grid
+tomorrow_weather_box = weather_icon_vertical_grid[1]
+# Draw a grid inside the bottom box
+tomorrow_weather_box_grid = draw_grid(tomorrow_weather_box.width(), tomorrow_weather_box.height() * 2, 2, 1, (tomorrow_weather_box.x1, tomorrow_weather_box.y1), draw, inky_display)
+
+# This is the top left corner of the top box in the bottom box
+tomorrow_offset = get_offset_for_weather_icon(tomorrow_weather_box_grid[0], tomorrow_icon_image)
+# This is the top left corner of the bottom box in the bottom box
+next_offset = get_offset_for_weather_icon(tomorrow_weather_box_grid[1], next_icon_image)
+print(next_icon_image)
+try: 
+    # Paste the weather icons onto the image
+    img.paste(today_icon_image, today_offset)
+    img.paste(tomorrow_icon_image, tomorrow_offset)
+    img.paste(next_icon_image, next_offset)
+except:
+    print('weather icon not found')
 
 
 def draw_text(location: tuple, text_content: str, color):
