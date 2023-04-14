@@ -220,8 +220,9 @@ draw.text(main_grids[1].center(), now, inky_display.WHITE, font=font, anchor="mm
 
 
 def get_weather_icon(weather_name, resize=(100, 100)):
+    print(weather_name)
     if weather_name is None:
-        return None
+        raise Exception("Weather name is None")
     return icons[weather_name].resize(resize)
 
 def get_offset_for_weather_icon(box, icon):
