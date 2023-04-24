@@ -158,7 +158,6 @@ if weather:
     summary = weather["today"]["summary"]
     tomorrow_summary = weather["tomorrow"]["summary"]
     next_summary = weather["next_day"]["summary"]
-    print(next_summary)
     for icon in icon_map:
         if summary in icon_map[icon]:
             today_weather_name = icon
@@ -244,20 +243,23 @@ draw.text(main_grids[2].center(), u"{}°C".format(temperature), inky_display.WHI
 try:
     today_icon_image = get_weather_icon(today_weather_name)
 except Exception:
+    print("Missing weather icon for: " + today_weather_name, weather)
     today_icon_image = get_weather_icon("smiley")
     # write the name of the missing weather
-    draw.text(main_grids[2].center(), today_weather_name, inky_display.WHITE, font=font, anchor="mm",)
+    draw.text(main_grids[2].center(), "smiley", inky_display.WHITE, font=font, anchor="mm",)
 try:
     tomorrow_icon_image = get_weather_icon(tomorrow_weather_name, resize=(50, 50))
 except Exception:
     tomorrow_icon_image = get_weather_icon("smiley")
-    draw.text(main_grids[2].center(), tomorrow_weather_name, inky_display.WHITE, font=font, anchor="mm",)
+    print("Missing weather icon for: " + tomorrow_weather_name)
+    draw.text(main_grids[2].center(), "smiley", inky_display.WHITE, font=font, anchor="mm",)
 
 try:
     next_icon_image = get_weather_icon(next_weather_name, resize=(50, 50))
 except Exception:
+    print("Missing weather icon for: " + next_weather_name)
     next_icon_image = get_weather_icon("smiley")
-    draw.text(main_grids[2].center(), next_weather_name, inky_display.WHITE, font=font, anchor="mm",)
+    draw.text(main_grids[2].center(), "smiley", inky_display.WHITE, font=font, anchor="mm",)
 
 
 # This is the grid of the weather icon
