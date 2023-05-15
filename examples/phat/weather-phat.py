@@ -238,29 +238,28 @@ def get_offset_for_weather_icon(box, icon):
 draw.text(main_grids[2].center(), u"{}°C".format(temperature), inky_display.WHITE if temperature <
           WARNING_TEMP else inky_display.BLUE, font=font, anchor="mm",)
 
-
-# # # Draw the current weather icon over the backdrop
+# Draw the current weather icon over the backdrop
 try:
     today_icon_image = get_weather_icon(today_weather_name)
 except Exception:
-    print("Missing weather icon for: " + today_weather_name, weather)
+    print(f"Missing weather icon for:  {today_weather_name}, {weather}")
     today_icon_image = get_weather_icon("smiley")
     # write the name of the missing weather
     draw.text(main_grids[2].center(), "smiley", inky_display.WHITE, font=font, anchor="mm",)
+
 try:
     tomorrow_icon_image = get_weather_icon(tomorrow_weather_name, resize=(50, 50))
 except Exception:
     tomorrow_icon_image = get_weather_icon("smiley")
-    print("Missing weather icon for: " + tomorrow_weather_name)
+    print(f"Missing weather icon for:  {tomorrow_weather_name}, {weather}")
     draw.text(main_grids[2].center(), "smiley", inky_display.WHITE, font=font, anchor="mm",)
 
 try:
     next_icon_image = get_weather_icon(next_weather_name, resize=(50, 50))
 except Exception:
-    print("Missing weather icon for: " + next_weather_name)
+    print(f"Missing weather icon for:  { next_weather_name}")
     next_icon_image = get_weather_icon("smiley")
     draw.text(main_grids[2].center(), "smiley", inky_display.WHITE, font=font, anchor="mm",)
-
 
 # This is the grid of the weather icon
 weather_icon_grid = main_grids[3]
@@ -282,7 +281,7 @@ tomorrow_weather_box_grid = draw_grid(tomorrow_weather_box.width(), tomorrow_wea
 tomorrow_offset = get_offset_for_weather_icon(tomorrow_weather_box_grid[0], tomorrow_icon_image)
 # This is the top left corner of the bottom box in the bottom box
 next_offset = get_offset_for_weather_icon(tomorrow_weather_box_grid[1], next_icon_image)
-print(next_icon_image)
+
 try: 
     # Paste the weather icons onto the image
     img.paste(today_icon_image, today_offset)
@@ -291,34 +290,29 @@ try:
 except:
     print('weather icon not found')
 
-
-def draw_text(location: tuple, text_content: str, color):
-    draw.text(location, text_content, color or inky_display.RED, font=font)
-
-
-
-
 # Draw min-max temperature in box
 
 kandinsky = get_kandinsky()
 img.paste(kandinsky["image"], (main_grids[4].x1, main_grids[4].y1))
 
 # minmax grid
-max_temp = weather["tomorrow"]["max"]
-# max_temp = weather["temperature"]["min"]
-draw.text(min_max_grids[0].center(), u"tom:", inky_display.WHITE, font=font, anchor="mm")
 
-tom_grid = draw_grid(min_max_grids[0].width(), min_max_grids[0].height(), 1, 2, (min_max_grids[2].x1, min_max_grids[2].y1), draw, inky_display)
-draw.text(tom_grid[1].center(), weather["tomorrow"]["min"], inky_display.WHITE, font=font, anchor="mm")
-draw.text(tom_grid[0].center(), weather["tomorrow"]["max"], inky_display.WHITE, font=font, anchor="mm")
+def draw_min_max_grid():
+    max_temp = weather["tomorrow"]["max"]
+    # max_temp = weather["temperature"]["min"]
+    draw.text(min_max_grids[0].center(), u"tom:", inky_display.WHITE, font=font, anchor="mm")
 
-draw.text(min_max_grids[1].center(), u"next:", inky_display.WHITE, font=font, anchor="mm")
-next_grid = draw_grid(min_max_grids[3].width(), min_max_grids[3].height(), 1, 2, (min_max_grids[3].x1, min_max_grids[3].y1), draw, inky_display)
+    tom_grid = draw_grid(min_max_grids[0].width(), min_max_grids[0].height(), 1, 2, (min_max_grids[2].x1, min_max_grids[2].y1), draw, inky_display)
+    draw.text(tom_grid[1].center(), weather["tomorrow"]["min"], inky_display.WHITE, font=font, anchor="mm")
+    draw.text(tom_grid[0].center(), weather["tomorrow"]["max"], inky_display.WHITE, font=font, anchor="mm")
 
-draw.text(next_grid[1].center(), weather["next_day"]["min"], inky_display.WHITE, font=font, anchor="mm")
-draw.text(next_grid[0].center(), weather["next_day"]["max"], inky_display.WHITE, font=font, anchor="mm")
+    draw.text(min_max_grids[1].center(), u"next:", inky_display.WHITE, font=font, anchor="mm")
+    next_grid = draw_grid(min_max_grids[3].width(), min_max_grids[3].height(), 1, 2, (min_max_grids[3].x1, min_max_grids[3].y1), draw, inky_display)
 
+    draw.text(next_grid[1].center(), weather["next_day"]["min"], inky_display.WHITE, font=font, anchor="mm")
+    draw.text(next_grid[0].center(), weather["next_day"]["max"], inky_display.WHITE, font=font, anchor="mm")
 
+draw_min_max_grid()
 # Display the weather data on Inky pHAT
 inky_display.set_image(img, saturation=0.5)
 inky_display.show()
