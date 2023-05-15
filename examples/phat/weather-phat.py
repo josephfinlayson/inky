@@ -142,7 +142,7 @@ icon_map = {
     "snow": ["snow", "sleet"],
     "rain": ["rain"],
     "cloud": ["fog", "cloudy", "partly-cloudy-day", "partly-cloudy-night", "clouds"],
-    "sun": ["clear-day", "clear-night"],
+    "sun": ["clear-day", "clear-night", "clear"],
     "storm": [],
     "wind": ["wind"]
 }
