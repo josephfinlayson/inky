@@ -257,7 +257,7 @@ except Exception:
 try:
     next_icon_image = get_weather_icon(next_weather_name, resize=(50, 50))
 except Exception:
-    print(f"Missing weather icon for next weather Icon:  { next_weather_name}")
+    print(f"Missing weather icon for next weather Icon:  { next_weather_name} {weather}")
     next_icon_image = get_weather_icon("smiley")
     draw.text(main_grids[2].center(), "smiley", inky_display.WHITE, font=font, anchor="mm",)
 
