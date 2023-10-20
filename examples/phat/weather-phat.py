@@ -33,7 +33,11 @@ INKY_WIDTH = inky_display.resolution[0]
 CITY = "Berlin"
 COUNTRYCODE = "DE"
 WARNING_TEMP = 25.0
-
+# Placeholder variables
+temperature = 0
+today_weather_name = None
+tomorrow_weather_name = None
+next_weather_name = None
 
 # Convert a city name and country code to latitude and longitude
 def get_coords(address):
@@ -140,18 +144,12 @@ weather = get_weather(location_string)
 # to the appropriate weather icons
 icon_map = {
     "snow": ["snow", "sleet"],
-    "rain": ["rain"],
+    "rain": ["rain", "drizzle"],
     "cloud": ["fog", "cloudy", "partly-cloudy-day", "partly-cloudy-night", "clouds"],
     "sun": ["clear-day", "clear-night", "clear"],
     "storm": [],
     "wind": ["wind"]
 }
-
-# Placeholder variables
-temperature = 0
-today_weather_name = None
-tomorrow_weather_name = None
-next_weather_name = None
 
 if weather:
     temperature = weather["today"]["temperature"]
