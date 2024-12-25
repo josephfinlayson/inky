@@ -67,7 +67,7 @@ def get_weather(address):
     }}
     api_key = "dd4e4011d95b7f9a60842291284c6569"
     today_url = f"https://api.openweathermap.org/data/2.5/weather?lat={coords[0]}&lon={coords[1]}&appid={api_key}&units=metric" 
-    response = requests.getday(today_url).json()
+    response = requests.get(today_url).json()
     weather["today"]["summary"] = response["weather"][0]["main"].lower()
     weather["today"]["temperature"] = response["main"]["temp"]
 
@@ -210,8 +210,10 @@ now = time.strftime("%H:%M")
 # get day of week
 day_of_week = time.strftime("%A")
 
-draw.text(main_grids[0].center(), f"""{day_of_week}
-    {   today_date}""", inky_display.WHITE, font=font, anchor="mm")
+draw.text(main_grids[0].center(), f"""
+    {day_of_week}
+          {today_date}
+""", inky_display.WHITE, font=font, anchor="mm")
 
 draw.text(main_grids[1].center(), now, inky_display.WHITE, font=font, anchor="mm")
 
