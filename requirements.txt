@@ -4,3 +4,4 @@ font-source-sans-pro
 inky
 pytz==2021.1
 requests==2.26.0
+RPi.GPIO
