@@ -6,6 +6,7 @@ sphinx/_build/
 *.swp
 dist/
 sdist/
+venv
 env/
 build/
 develop-eggs/
