@@ -1,2 +1,2 @@
- #!/bin/bash -v -x
-TZ="Europe/Berlin" python3 /home/pi/www/inky/examples/phat/weather-phat.py
+#!/bin/bash -v -x
+TZ="Europe/Berlin" python3 /home/pi/www/inky/life_utility/phat/main.py
