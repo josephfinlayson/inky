@@ -141,17 +141,17 @@ class WeatherDisplay:
         )
 
     def _draw_moon(self, x: int, y: int, radius: int):
-        """Draw a crescent moon icon."""
-        # Draw full circle
+        """Draw a crescent moon icon (black on white e-ink background)."""
+        # Draw filled black circle
         self.draw.ellipse(
             [x - radius, y - radius, x + radius, y + radius],
-            fill=self.inky.WHITE,
+            fill=self.inky.BLACK,
         )
-        # Cut out a circle offset to create crescent
+        # Cut out with white circle offset to create crescent
         offset = int(radius * 0.6)
         self.draw.ellipse(
             [x - radius + offset, y - radius, x + radius + offset, y + radius],
-            fill=self.inky.BLACK,
+            fill=self.inky.WHITE,
         )
 
     def draw_temperature(self, weather: dict):
