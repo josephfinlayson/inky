@@ -107,31 +107,33 @@ class WeatherDisplay:
         sunrise = weather.get("sunrise", "--:--")
         sunset = weather.get("sunset", "--:--")
 
-        # Position in lower portion of the time box
+        # Position in lower portion of the time box - stacked vertically
         center_x = box.center()[0]
-        base_y = box.y1 + int(box.height() * 0.65)
-        icon_size = 16
-        spacing = 8
+        icon_size = 20
+        row_height = 28
+        start_y = box.y1 + int(box.height() * 0.55)
 
-        # Sunrise: sun icon + time
+        # Sunrise row: sun icon + time
+        sunrise_y = start_y
         sun_icon = self.icons.get("sun")
         if sun_icon:
             small_sun = sun_icon.resize((icon_size, icon_size))
-            sun_x = center_x - 45
-            self.img.paste(small_sun, (sun_x, base_y - icon_size // 2))
-            self.draw.text(
-                (sun_x + icon_size + spacing, base_y),
-                sunrise,
-                self.inky.WHITE,
-                font=self.font_small,
-                anchor="lm",
-            )
-
-        # Sunset: moon icon (drawn as crescent) + time
-        moon_x = center_x + 5
-        self._draw_moon(moon_x + icon_size // 2, base_y, icon_size // 2)
+            icon_x = center_x - 55
+            self.img.paste(small_sun, (icon_x, sunrise_y - icon_size // 2))
         self.draw.text(
-            (moon_x + icon_size + spacing, base_y),
+            (center_x - 25, sunrise_y),
+            sunrise,
+            self.inky.WHITE,
+            font=self.font_small,
+            anchor="lm",
+        )
+
+        # Sunset row: moon icon + time
+        sunset_y = start_y + row_height
+        moon_x = center_x - 55
+        self._draw_moon(moon_x + icon_size // 2, sunset_y, icon_size // 2)
+        self.draw.text(
+            (center_x - 25, sunset_y),
             sunset,
             self.inky.WHITE,
             font=self.font_small,
@@ -146,9 +148,9 @@ class WeatherDisplay:
             fill=self.inky.WHITE,
         )
         # Cut out a circle offset to create crescent
-        offset = radius // 2
+        offset = int(radius * 0.6)
         self.draw.ellipse(
-            [x - radius + offset, y - radius - 2, x + radius + offset, y + radius - 2],
+            [x - radius + offset, y - radius, x + radius + offset, y + radius],
             fill=self.inky.BLACK,
         )
 
