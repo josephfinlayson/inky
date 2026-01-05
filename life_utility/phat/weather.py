@@ -37,6 +37,10 @@ class WeatherClient:
         weather["today"]["summary"] = response["weather"][0]["main"].lower()
         weather["today"]["temperature"] = response["main"]["temp"]
 
+        # Sunrise/sunset times
+        weather["sunrise"] = datetime.fromtimestamp(response["sys"]["sunrise"]).strftime("%H:%M")
+        weather["sunset"] = datetime.fromtimestamp(response["sys"]["sunset"]).strftime("%H:%M")
+
         # Forecast
         forecast_url = (
             f"https://api.openweathermap.org/data/2.5/forecast"

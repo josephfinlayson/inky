@@ -90,12 +90,66 @@ class WeatherDisplay:
             anchor="mm",
         )
 
+        # Draw time in upper portion of grids[1]
+        time_box = self.grids[1]
+        time_y = time_box.y1 + time_box.height() // 3
         self.draw.text(
-            self.grids[1].center(),
+            (time_box.center()[0], time_y),
             time_str,
             self.inky.WHITE,
             font=self.font_large,
             anchor="mm",
+        )
+
+    def draw_sunrise_sunset(self, weather: dict):
+        """Draw sunrise and sunset times with icons under the clock."""
+        box = self.grids[1]
+        sunrise = weather.get("sunrise", "--:--")
+        sunset = weather.get("sunset", "--:--")
+
+        # Position in lower portion of the time box
+        center_x = box.center()[0]
+        base_y = box.y1 + int(box.height() * 0.65)
+        icon_size = 16
+        spacing = 8
+
+        # Sunrise: sun icon + time
+        sun_icon = self.icons.get("sun")
+        if sun_icon:
+            small_sun = sun_icon.resize((icon_size, icon_size))
+            sun_x = center_x - 45
+            self.img.paste(small_sun, (sun_x, base_y - icon_size // 2))
+            self.draw.text(
+                (sun_x + icon_size + spacing, base_y),
+                sunrise,
+                self.inky.WHITE,
+                font=self.font_small,
+                anchor="lm",
+            )
+
+        # Sunset: moon icon (drawn as crescent) + time
+        moon_x = center_x + 5
+        self._draw_moon(moon_x + icon_size // 2, base_y, icon_size // 2)
+        self.draw.text(
+            (moon_x + icon_size + spacing, base_y),
+            sunset,
+            self.inky.WHITE,
+            font=self.font_small,
+            anchor="lm",
+        )
+
+    def _draw_moon(self, x: int, y: int, radius: int):
+        """Draw a crescent moon icon."""
+        # Draw full circle
+        self.draw.ellipse(
+            [x - radius, y - radius, x + radius, y + radius],
+            fill=self.inky.WHITE,
+        )
+        # Cut out a circle offset to create crescent
+        offset = radius // 2
+        self.draw.ellipse(
+            [x - radius + offset, y - radius - 2, x + radius + offset, y + radius - 2],
+            fill=self.inky.BLACK,
         )
 
     def draw_temperature(self, weather: dict):
@@ -302,6 +356,7 @@ class WeatherDisplay:
     def render(self, weather: dict, departures: list):
         """Render all components to the display."""
         self.draw_date_time()
+        self.draw_sunrise_sunset(weather)
         self.draw_temperature(weather)
         self.draw_weather_icons(weather)
         self.draw_u6_departures(departures)
