@@ -292,6 +292,13 @@ class WeatherDisplay:
                     text = "jetzt"
                 elif mins == 1:
                     text = "1 min"
+                elif mins >= 60:
+                    hours = mins // 60
+                    remaining = mins % 60
+                    if remaining == 0:
+                        text = f"{hours}h"
+                    else:
+                        text = f"{hours}h {remaining}m"
                 else:
                     text = f"{mins} min"
 
