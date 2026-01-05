@@ -85,16 +85,84 @@ class WeatherDisplay:
         )
 
     def draw_temperature(self, weather: dict):
-        """Draw current temperature."""
+        """Draw current temperature with precipitation graph below."""
+        box = self.grids[2]
         temp = weather["today"]["temperature"]
         color = self.inky.WHITE if temp < WARNING_TEMP else self.inky.BLUE
+
+        # Draw temperature in upper portion
+        temp_y = box.y1 + box.height() // 3
         self.draw.text(
-            self.grids[2].center(),
+            (box.center()[0], temp_y),
             f"{temp:.0f}°C",
             color,
             font=self.font_large,
             anchor="mm",
         )
+
+        # Draw precipitation graph in lower portion
+        precip_data = weather.get("precipitation", [])
+        self._draw_precipitation_graph(box, precip_data)
+
+    def _draw_precipitation_graph(self, box: Box, precip_data: list):
+        """Draw a 24-hour precipitation probability bar graph with current time marker."""
+        # Graph area: lower 40% of the box with padding
+        padding = 8
+        graph_height = 40
+        graph_width = box.width() - (padding * 2)
+        graph_x = box.x1 + padding
+        graph_y = box.y2 - graph_height - padding
+
+        # Draw baseline
+        self.draw.line(
+            [(graph_x, graph_y + graph_height), (graph_x + graph_width, graph_y + graph_height)],
+            fill=self.inky.WHITE,
+            width=1,
+        )
+
+        # Bar width for 24 hours (or 8 x 3-hour blocks from API)
+        if not precip_data:
+            return
+
+        # OpenWeatherMap gives 3-hour blocks, typically 8 per day
+        num_bars = len(precip_data)
+        bar_width = max(1, graph_width // max(num_bars, 1))
+        bar_gap = 2
+
+        for i, data in enumerate(precip_data):
+            pop = data["pop"]  # 0-1
+            bar_height = int(pop * (graph_height - 5))
+
+            if bar_height > 0:
+                x = graph_x + i * (bar_width + bar_gap)
+                y = graph_y + graph_height - bar_height
+
+                self.draw.rectangle(
+                    [x, y, x + bar_width, graph_y + graph_height],
+                    fill=self.inky.BLUE,
+                    outline=self.inky.WHITE,
+                )
+
+        # Draw vertical line for current time position
+        now = datetime.now()
+        current_hour = now.hour + now.minute / 60
+
+        # Map current hour to graph position (assuming data spans today)
+        if precip_data:
+            first_hour = precip_data[0]["hour"]
+            last_hour = precip_data[-1]["hour"] + 3  # 3-hour blocks
+            hour_range = last_hour - first_hour
+
+            if hour_range > 0 and first_hour <= current_hour <= last_hour:
+                time_ratio = (current_hour - first_hour) / hour_range
+                marker_x = graph_x + int(time_ratio * graph_width)
+
+                # Draw vertical marker line
+                self.draw.line(
+                    [(marker_x, graph_y), (marker_x, graph_y + graph_height)],
+                    fill=self.inky.RED,
+                    width=2,
+                )
 
     def draw_weather_icons(self, weather: dict):
         """Draw weather icons for today, tomorrow, and next day."""

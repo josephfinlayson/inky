@@ -68,4 +68,24 @@ class WeatherClient:
         weather["tomorrow"] = weather.get(tomorrow, {})
         weather["next_day"] = weather.get(next_day, {})
 
+        # Extract hourly precipitation for today (24h from midnight)
+        weather["precipitation"] = self._extract_precipitation(response["list"])
+
         return weather
+
+    def _extract_precipitation(self, forecast_list: list) -> list:
+        """Extract precipitation probability for today's 24 hours.
+
+        Returns list of (hour, pop) tuples for 00:00-23:59 today.
+        """
+        today = datetime.now().strftime("%Y-%m-%d")
+        precip = []
+
+        for item in forecast_list:
+            dt = datetime.fromtimestamp(item["dt"])
+            if dt.strftime("%Y-%m-%d") == today:
+                hour = dt.hour
+                pop = item.get("pop", 0)  # 0-1 probability
+                precip.append({"hour": hour, "pop": pop})
+
+        return precip
