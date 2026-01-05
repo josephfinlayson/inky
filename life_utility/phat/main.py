@@ -19,13 +19,14 @@ def main():
     weather_client = WeatherClient(CITY, COUNTRY_CODE)
     weather = weather_client.fetch()
 
-    # Fetch U6 departures
+    # Fetch U6 departures and U-Bahn delays
     bvg_client = BVGClient()
     departures = bvg_client.get_northbound_departures()
+    ubahn_delays = bvg_client.get_ubahn_delays()
 
     # Render to display
     display = WeatherDisplay(inky_display)
-    display.render(weather, departures)
+    display.render(weather, departures, ubahn_delays)
     display.show()
 
 

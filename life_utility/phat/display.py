@@ -267,8 +267,8 @@ class WeatherDisplay:
         self.img.paste(tomorrow_icon, self._center_offset(forecast_grids[0], tomorrow_icon))
         self.img.paste(next_icon, self._center_offset(forecast_grids[1], next_icon))
 
-    def draw_u6_departures(self, departures: list):
-        """Draw U6 departure times in bottom-left grid."""
+    def draw_u6_departures(self, departures: list, ubahn_delays: dict = None):
+        """Draw U6 departure times and U-Bahn delay status."""
         box = self.grids[4]
         width = box.width()
 
@@ -281,20 +281,19 @@ class WeatherDisplay:
             anchor="mt",
         )
 
-        # Departure times
+        # Departure times (only 2)
         if departures:
-            y_start = box.y1 + 50
-            y_spacing = 45
+            y_start = box.y1 + 45
+            y_spacing = 40
 
-            for i, secs in enumerate(departures[:4]):
+            for i, secs in enumerate(departures[:2]):
                 y = y_start + i * y_spacing
                 mins = secs // 60
-                remaining_secs = secs % 60
 
                 if secs < 60:
                     text = "jetzt"
                 elif mins < 60:
-                    text = f"{mins}:{remaining_secs:02d}"
+                    text = f"{mins} min"
                 else:
                     hours = mins // 60
                     remaining_mins = mins % 60
@@ -312,11 +311,32 @@ class WeatherDisplay:
                 )
         else:
             self.draw.text(
-                box.center(),
+                (box.x1 + width // 2, box.y1 + 60),
                 "No data",
                 self.inky.WHITE,
                 font=self.font_small,
-                anchor="mm",
+                anchor="mt",
+            )
+
+        # U-Bahn delays section
+        delay_y = box.y1 + 135
+        if ubahn_delays:
+            # Show delayed lines in red
+            delay_text = " ".join([f"{line}+{mins}" for line, mins in sorted(ubahn_delays.items())])
+            self.draw.text(
+                (box.x1 + width // 2, delay_y),
+                delay_text,
+                self.inky.RED,
+                font=self.font_small,
+                anchor="mt",
+            )
+        else:
+            self.draw.text(
+                (box.x1 + width // 2, delay_y),
+                "U-Bahn OK",
+                self.inky.WHITE,
+                font=self.font_small,
+                anchor="mt",
             )
 
     def draw_min_max(self, weather: dict):
@@ -363,13 +383,13 @@ class WeatherDisplay:
             self.inky.WHITE, font=self.font_large, anchor="mm"
         )
 
-    def render(self, weather: dict, departures: list):
+    def render(self, weather: dict, departures: list, ubahn_delays: dict = None):
         """Render all components to the display."""
         self.draw_date_time()
         self.draw_sunrise_sunset(weather)
         self.draw_temperature(weather)
         self.draw_weather_icons(weather)
-        self.draw_u6_departures(departures)
+        self.draw_u6_departures(departures, ubahn_delays)
         self.draw_min_max(weather)
 
     def show(self):
