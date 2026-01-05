@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """BVG API client for U-Bahn departure times."""
 
+import time
 from datetime import datetime
 import requests
 
@@ -22,30 +23,43 @@ class BVGClient:
             f"&ferry=false&express=false&regional=false"
         )
 
-        try:
-            response = requests.get(url, timeout=10).json()
-            departures = response.get("departures", [])
+        # Retry up to 3 times with increasing timeout
+        max_retries = 3
+        last_error = None
 
-            # Filter northbound (Kurt-Schumacher-Platz = toward Alt-Tegel)
-            northbound = [
-                d for d in departures
-                if "Kurt-Schumacher" in d.get("direction", "")
-                or "Alt-Tegel" in d.get("direction", "")
-            ]
+        for attempt in range(max_retries):
+            try:
+                timeout = 15 + (attempt * 5)  # 15s, 20s, 25s
+                response = requests.get(url, timeout=timeout)
+                response.raise_for_status()
+                data = response.json()
+                departures = data.get("departures", [])
 
-            # Convert to minutes from now
-            results = []
-            for dep in northbound[:limit]:
-                when = dep.get("when") or dep.get("plannedWhen")
-                if when:
-                    dep_time = datetime.fromisoformat(when.replace("Z", "+00:00"))
-                    now = datetime.now(dep_time.tzinfo)
-                    mins = int((dep_time - now).total_seconds() / 60)
-                    if mins >= 0:
-                        results.append(mins)
+                # Filter northbound (Kurt-Schumacher-Platz = toward Alt-Tegel)
+                northbound = [
+                    d for d in departures
+                    if "Kurt-Schumacher" in d.get("direction", "")
+                    or "Alt-Tegel" in d.get("direction", "")
+                ]
 
-            return results[:limit]
+                # Convert to minutes from now
+                results = []
+                for dep in northbound[:limit]:
+                    when = dep.get("when") or dep.get("plannedWhen")
+                    if when:
+                        dep_time = datetime.fromisoformat(when.replace("Z", "+00:00"))
+                        now = datetime.now(dep_time.tzinfo)
+                        mins = int((dep_time - now).total_seconds() / 60)
+                        if mins >= 0:
+                            results.append(mins)
 
-        except Exception as e:
-            print(f"Error fetching U6 departures: {e}")
-            return []
+                return results[:limit]
+
+            except Exception as e:
+                last_error = e
+                print(f"BVG API attempt {attempt + 1}/{max_retries} failed: {e}")
+                if attempt < max_retries - 1:
+                    time.sleep(2)  # Wait before retry
+
+        print(f"BVG API failed after {max_retries} attempts: {last_error}")
+        return []
