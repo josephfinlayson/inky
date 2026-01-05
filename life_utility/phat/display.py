@@ -260,7 +260,7 @@ class WeatherDisplay:
 
         forecast_box = icon_grids[1]
         forecast_grids = draw_grid(
-            forecast_box.width(), forecast_box.height() * 2, 2, 1,
+            forecast_box.width(), forecast_box.height(), 2, 1,
             (forecast_box.x1, forecast_box.y1), self.draw, self.inky
         )
 
