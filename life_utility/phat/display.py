@@ -69,13 +69,27 @@ class WeatherDisplay:
         date_str = now.strftime("%d/%m")
         time_str = now.strftime("%H:%M")
 
+        # Draw day and date as separate centered lines
+        box = self.grids[0]
+        center_x = box.center()[0]
+        center_y = box.center()[1]
+        line_spacing = 25
+
         self.draw.text(
-            self.grids[0].center(),
-            f"{day_of_week}\n{date_str}",
+            (center_x, center_y - line_spacing),
+            day_of_week,
             self.inky.WHITE,
             font=self.font_large,
             anchor="mm",
         )
+        self.draw.text(
+            (center_x, center_y + line_spacing),
+            date_str,
+            self.inky.WHITE,
+            font=self.font_large,
+            anchor="mm",
+        )
+
         self.draw.text(
             self.grids[1].center(),
             time_str,
