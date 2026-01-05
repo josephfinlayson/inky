@@ -286,21 +286,22 @@ class WeatherDisplay:
             y_start = box.y1 + 50
             y_spacing = 45
 
-            for i, mins in enumerate(departures[:4]):
+            for i, secs in enumerate(departures[:4]):
                 y = y_start + i * y_spacing
-                if mins == 0:
+                mins = secs // 60
+                remaining_secs = secs % 60
+
+                if secs < 60:
                     text = "jetzt"
-                elif mins == 1:
-                    text = "1 min"
-                elif mins >= 60:
+                elif mins < 60:
+                    text = f"{mins}:{remaining_secs:02d}"
+                else:
                     hours = mins // 60
-                    remaining = mins % 60
-                    if remaining == 0:
+                    remaining_mins = mins % 60
+                    if remaining_mins == 0:
                         text = f"{hours}h"
                     else:
-                        text = f"{hours}h {remaining}m"
-                else:
-                    text = f"{mins} min"
+                        text = f"{hours}h {remaining_mins}m"
 
                 self.draw.text(
                     (box.x1 + width // 2, y),

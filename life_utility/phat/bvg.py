@@ -42,16 +42,16 @@ class BVGClient:
                     or "Alt-Tegel" in d.get("direction", "")
                 ]
 
-                # Convert to minutes from now
+                # Convert to seconds from now
                 results = []
                 for dep in northbound[:limit]:
                     when = dep.get("when") or dep.get("plannedWhen")
                     if when:
                         dep_time = datetime.fromisoformat(when.replace("Z", "+00:00"))
                         now = datetime.now(dep_time.tzinfo)
-                        mins = int((dep_time - now).total_seconds() / 60)
-                        if mins >= 0:
-                            results.append(mins)
+                        secs = int((dep_time - now).total_seconds())
+                        if secs >= 0:
+                            results.append(secs)
 
                 return results[:limit]
 
