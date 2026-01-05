@@ -192,6 +192,67 @@ def get_kandinsky():
             "image": image}
 
 
+def get_u6_departures():
+    """Fetch northbound U6 departures from Kaiserin-Augusta-Str."""
+    station_id = "900068302"
+    url = f"https://v6.bvg.transport.rest/stops/{station_id}/departures?duration=30&subway=true&bus=false&tram=false&ferry=false&express=false&regional=false"
+
+    try:
+        response = requests.get(url, timeout=10).json()
+        departures = response.get("departures", [])
+
+        # Filter for northbound only (Kurt-Schumacher-Platz direction = toward Alt-Tegel)
+        northbound = [d for d in departures if "Kurt-Schumacher" in d.get("direction", "") or "Alt-Tegel" in d.get("direction", "")]
+
+        # Get next 4 departures
+        results = []
+        for dep in northbound[:4]:
+            when = dep.get("when") or dep.get("plannedWhen")
+            if when:
+                # Parse ISO time and convert to minutes from now
+                dep_time = datetime.fromisoformat(when.replace("Z", "+00:00"))
+                now = datetime.now(dep_time.tzinfo)
+                mins = int((dep_time - now).total_seconds() / 60)
+                if mins >= 0:
+                    results.append(mins)
+
+        return results[:4]
+    except Exception as e:
+        print(f"Error fetching U6 departures: {e}")
+        return []
+
+
+def draw_u6_departures(draw, box, inky_display, font_large, font_small):
+    """Draw U6 departure times in the given box."""
+    departures = get_u6_departures()
+
+    # Create image for the departure display
+    width = box.width()
+    height = box.height()
+
+    # Header
+    header_y = 10
+    draw.text((box.x1 + width // 2, box.y1 + header_y), "U6 Nord", inky_display.BLUE, font=font_small, anchor="mt")
+
+    # Departure times
+    if departures:
+        y_start = box.y1 + 50
+        y_spacing = 45
+
+        for i, mins in enumerate(departures[:4]):
+            y = y_start + (i * y_spacing)
+            if mins == 0:
+                time_text = "jetzt"
+            elif mins == 1:
+                time_text = "1 min"
+            else:
+                time_text = f"{mins} min"
+
+            draw.text((box.x1 + width // 2, y), time_text, inky_display.WHITE, font=font_large, anchor="mt")
+    else:
+        draw.text((box.x1 + width // 2, box.y1 + height // 2), "No data", inky_display.WHITE, font=font_small, anchor="mm")
+
+
 font = ImageFont.truetype(SourceSansProSemibold, 40)
 
 main_grids: List[Box] = draw_grid(INKY_WIDTH, INKY_HEIGHT, 3, 2, (0,0), draw, inky_display)
@@ -289,8 +350,9 @@ except:
 
 # Draw min-max temperature in box
 
-kandinsky = get_kandinsky()
-img.paste(kandinsky["image"], (main_grids[4].x1, main_grids[4].y1))
+# Draw U6 departure times instead of kandinsky art
+font_small = ImageFont.truetype(SourceSansProSemibold, 24)
+draw_u6_departures(draw, main_grids[4], inky_display, font, font_small)
 
 # minmax grid
 
